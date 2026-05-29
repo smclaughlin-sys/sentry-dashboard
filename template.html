@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sentry Self Storage Weekly Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--ink:#18181a;--ink2:#52514e;--ink3:#9c9a94;--ink4:#c8c5be;--rule:#e8e5de;--rule2:#f0ede6;--bg:#fafaf7;--white:#fff;--blue:#2255a4;--blue-l:#dce8f8;--green:#1b7a59;--green-l:#d4edd8;--amber:#904800;--amber-l:#fdecd5;--red:#8a1e1e;--red-l:#fce8e8;--purple:#4b3fa0;--purple-l:#ece9fc;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5;}
+.page{max-width:1300px;margin:0 auto;padding:52px 44px 100px;}
+.mast{border-top:3px solid var(--ink);border-bottom:0.5px solid var(--rule);padding:24px 0 20px;display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;margin-bottom:44px;}
+.mast-k{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:5px;}
+.mast-t{font-size:32px;font-weight:300;letter-spacing:-.025em;line-height:1.1;}
+.mast-t strong{font-weight:500;}
+.mast-m{font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:right;line-height:1.9;}
+.mast-m b{color:var(--ink2);font-weight:500;}
+.sh{display:flex;align-items:baseline;gap:12px;margin:48px 0 22px;padding-bottom:10px;border-bottom:0.5px solid var(--rule);}
+.sh h2{font-size:11px;font-family:var(--mono);font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2);}
+.sh span{font-family:var(--mono);font-size:10px;color:var(--ink3);}
+.port-kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--rule);border:0.5px solid var(--rule);border-radius:9px;overflow:hidden;margin-bottom:28px;}
+.pk{background:var(--white);padding:20px 18px 16px;}
+.pk-l{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:7px;}
+.pk-v{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--ink);line-height:1;}
+.pk-s{font-size:11px;color:var(--ink3);margin-top:5px;}
+.pk-d{font-size:11px;margin-top:4px;}
+.cstrip{background:var(--purple-l);border:0.5px solid #c2bdf0;border-radius:9px;padding:18px 24px;display:flex;align-items:center;gap:36px;margin-bottom:28px;flex-wrap:wrap;}
+.ci{display:flex;flex-direction:column;gap:4px;}
+.ci-l{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--purple);}
+.ci-v{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--purple);}
+.ci-s{font-size:11px;color:#6e66c0;}
+.vsep{width:0.5px;background:#c2bdf0;align-self:stretch;}
+.port-charts{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:20px;margin-bottom:28px;}
+.pcc{background:var(--white);border:0.5px solid var(--rule);border-radius:9px;padding:22px 22px 18px;}
+.pcc-l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:14px;}
+.ch{position:relative;height:240px;}
+.ar-track{background:var(--white);border:0.5px solid var(--rule);border-radius:9px;padding:22px 24px 20px;margin-bottom:28px;}
+.ar-kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--rule);border:0.5px solid var(--rule);border-radius:6px;overflow:hidden;margin-bottom:20px;}
+.ar-kpi{background:var(--white);padding:14px 16px 12px;}
+.ar-kpi-l{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:5px;}
+.ar-kpi-v{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1;}
+.ar-kpi-p{font-size:10px;color:var(--ink3);margin-top:3px;}
+.ar-kpi-d{font-size:11px;margin-top:4px;}
+.ar-kpi-v.red{color:var(--red);}
+.ar-kpi-v.ink{color:var(--ink);}
+.ar-leg{display:flex;gap:18px;margin-bottom:12px;font-size:11px;color:var(--ink3);}
+.ar-leg span{display:flex;align-items:center;gap:6px;}
+.ar-leg-sq{width:12px;height:8px;border-radius:2px;display:inline-block;}
+.ar-leg-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.ar-chart-wrap{position:relative;height:260px;}
+.art-wrap{background:var(--white);border:0.5px solid var(--rule);border-radius:9px;margin-bottom:28px;overflow:hidden;}
+.art-wrap table{width:100%;border-collapse:collapse;font-size:12px;}
+.art-wrap thead tr{background:var(--rule2);}
+.art-wrap th{font-family:var(--mono);font-size:9.5px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);padding:10px 16px;text-align:right;border-bottom:0.5px solid var(--rule);}
+.art-wrap th:first-child{text-align:left;}
+.art-wrap td{padding:8px 16px;text-align:right;border-bottom:0.5px solid var(--rule2);font-variant-numeric:tabular-nums;font-size:12px;}
+.art-wrap td:first-child{text-align:left;}
+.art-wrap tr:last-child td{border-bottom:none;}
+.art-wrap .trow td{font-family:var(--mono);font-weight:500;background:var(--rule2);border-top:0.5px solid var(--rule);}
+.ahi{color:var(--red);font-weight:500;}
+.aok{color:var(--green);}
+.store-grid{display:grid;grid-template-columns:1fr;gap:40px;}
+.sc{background:var(--white);border:0.5px solid var(--rule);border-radius:12px;overflow:hidden;}
+.sc-hdr{padding:22px 28px 18px;border-bottom:0.5px solid var(--rule2);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+.sc-name{font-size:20px;font-weight:500;color:var(--ink);line-height:1.25;}
+.sc-badges{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;padding-top:2px;}
+.sc-kpis{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:0.5px solid var(--rule2);}
+.sk{padding:18px 22px 16px;border-right:0.5px solid var(--rule2);}
+.sk:last-child{border-right:none;}
+.sk-l{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-bottom:5px;}
+.sk-v{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--ink);line-height:1.2;}
+.sk-v.ok{color:var(--green);}
+.sk-v.warn{color:var(--red);}
+.sk-v.amber{color:var(--amber);}
+.sk-s{font-size:11px;color:var(--ink3);margin-top:3px;}
+.sk-d{font-size:11px;margin-top:4px;}
+.sk-sub2{font-size:10px;color:var(--ink3);margin-top:2px;}
+.sc-charts{padding:22px 26px 26px;}
+.sc-top5{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr;gap:20px;margin-bottom:22px;}
+.sc-bottom-panel{padding-top:16px;border-top:0.5px solid var(--rule2);display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:20px;}
+.sc-cl{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-bottom:8px;}
+.sc-ch-wide{position:relative;height:230px;}
+.src-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.src-tbl td{padding:5px 0;border-bottom:0.5px solid var(--rule2);}
+.src-tbl td:last-child{text-align:right;font-family:var(--mono);color:var(--purple);}
+.src-tbl tr:last-child td{border-bottom:none;}
+.panel-hdr{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-bottom:8px;}
+.badge{display:inline-block;font-family:var(--mono);font-size:8.5px;font-weight:500;letter-spacing:.04em;padding:3px 8px;border-radius:3px;text-transform:uppercase;}
+.bk{background:var(--green-l);color:var(--green);}
+.bw{background:var(--red-l);color:var(--red);}
+.ba{background:var(--amber-l);color:var(--amber);}
+.up{color:var(--green);}.dn{color:var(--red);}.fl{color:var(--ink3);}
+.footer{margin-top:64px;padding-top:18px;border-top:0.5px solid var(--rule);display:flex;justify-content:space-between;align-items:center;}
+.footer-b{font-family:var(--mono);font-size:10px;color:var(--ink3);}
+.footer-n{font-size:10px;color:var(--ink3);font-style:italic;}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="mast">
+  <div><div class="mast-k">Internal - Company Performance Report</div><div class="mast-t"><strong>Sentry Self Storage</strong> Weekly Leaderboard</div></div>
+  <div class="mast-m" id="mastMeta"></div>
+</div>
+<div class="sh" id="shPortfolio"><h2>Portfolio aggregate</h2><span></span></div>
+<div class="port-kpis" id="portKpis"></div>
+<div class="cstrip" id="portClosing"></div>
+<div class="port-charts">
+  <div class="pcc"><div class="pcc-l" id="labelLeadPie"></div><div class="ch"><canvas id="portLeadPie"></canvas></div></div>
+  <div class="pcc"><div class="pcc-l" id="labelSqft"></div><div class="ch"><canvas id="portSqft"></canvas></div></div>
+  <div class="pcc"><div class="pcc-l" id="labelDpsf"></div><div class="ch"><canvas id="portDpsf"></canvas></div></div>
+  <div class="pcc"><div class="pcc-l" id="labelNet"></div><div class="ch"><canvas id="portNet"></canvas></div></div>
+</div>
+<div class="sh" id="shAR"><h2>AR tracking - Total AR $ - Total AR % - 91+ Day AR $</h2><span></span></div>
+<div class="ar-track">
+  <div class="ar-kpi-row" id="arKpiRow"></div>
+  <div class="ar-leg">
+    <span><span class="ar-leg-sq" style="background:rgba(240,149,149,0.55)"></span>Total AR $</span>
+    <span><span class="ar-leg-sq" style="background:rgba(138,30,30,0.65)"></span>91+ AR $</span>
+    <span><span class="ar-leg-dot" style="background:#8a1e1e"></span>AR %</span>
+  </div>
+  <div class="ar-chart-wrap"><canvas id="arTrackChart"></canvas></div>
+</div>
+<div class="sh" id="shARDetail"><h2>AR detail</h2><span></span></div>
+<div class="art-wrap" id="arTable"></div>
+<div class="sh" id="shStores"><h2>Store-by-store performance</h2><span></span></div>
+<div class="store-grid" id="storeGrid"></div>
+<div class="footer">
+  <div class="footer-b" id="footerBrand"></div>
+  <div class="footer-n">Confidential - for internal use only - Source: Storable Edge</div>
+</div>
+</div>
+<script>
+/*
+ * =====================================================================
+ * SENTRY SELF STORAGE WEEKLY DASHBOARD — DATA INJECTION REFERENCE
+ * =====================================================================
+ *
+ * The n8n workflow replaces // %%INJECT_DATA%% with const declarations
+ * for the variables listed below. See data_schema.json for full types.
+ *
+ * META               {object}     Report metadata: dates, labels, counts
+ *   .weekEnding      {string}     Full date, e.g. "May 3, 2026"
+ *   .weekEndingShort {string}     Title-safe date, e.g. "May 3 2026"
+ *   .periodLabel     {string}     MTD period, e.g. "May 1-3, 2026"
+ *   .mtdMonth        {string}     Month abbrev for MTD label, e.g. "May"
+ *   .prevWeekLabel   {string}     Prior snapshot date, e.g. "Apr 27"
+ *   .snapshotCount   {number}     Total snapshots in history, e.g. 17
+ *   .propertyCount   {number}     Number of properties, e.g. 26
+ *   .yearStartLabel  {string}     Year-start snapshot label, e.g. "Jan 5"
+ *   .gapFillLabel    {string|null}"Feb 9, 2026" or null if no gap
+ *   .arTrackStart    {string}     First AR chart date label, e.g. "Jan 12"
+ *   .midAnchorIndex  {number}     Zero-based HDATES index for STORES_MID
+ *                                 anchor snapshot (e.g. 4 for Feb 9)
+ *
+ * HDATES             {string[]}   Ordered snapshot date labels
+ *                                 e.g. ["1/12","1/19","1/26",...]
+ *
+ * PORT_SQ            {number[]}   Portfolio avg sq.ft occ % per snapshot
+ * PORT_DP            {number[]}   Portfolio avg $/sq.ft per snapshot
+ * PORT_TOTAL_AR      {number[]}   Portfolio total AR $ per snapshot
+ * PORT_AR91          {number[]}   Portfolio 91+ day AR $ per snapshot
+ * PORT_ARPC          {number[]}   Portfolio AR % per snapshot
+ *
+ * PORT               {object}     Portfolio aggregate KPIs — current week
+ *   .sqftOcc         {number}     Avg sq.ft occupancy %
+ *   .econOcc         {number}     Avg economic occupancy %
+ *   .moveIns         {number}     Total move-ins MTD
+ *   .moveOuts        {number}     Total move-outs MTD
+ *   .net             {number}     Net units MTD
+ *   .leadsOpened     {number}     Total leads opened
+ *   .closingRatio    {number}     Closing ratio % (moveIns/leadsOpened*100)
+ *   .unrent          {number}     Current unrentable units
+ *   .unrentPrev      {number}     Prior week unrentable units
+ *   .avgDpsf         {number}     Avg $/sq.ft
+ *   .avgAnn          {number}     Avg annualized rate $
+ *   .topMoveInSource {string}     Lead source driving most move-ins
+ *   .topMoveInCount  {number}     Move-ins attributed to that source
+ *
+ * PORT_LEADS         {object}     Leads opened by source: {"Source":count}
+ *
+ * STORES_YEAR_START  {object}     Per-store year-start baseline
+ *                                 { storeName: {sqft, dpsf, ann} }
+ *
+ * STORES_MID         {object}     Per-store mid-year anchor (gap fill)
+ *                                 { storeName: {sqft, dpsf, ann} }
+ *                                 Anchored at HDATES[META.midAnchorIndex]
+ *
+ * STORES_PREV_UR     {object}     Prior-week unrentable by store
+ *                                 { storeName: number }
+ *
+ * STORES             {object}     Per-store current-week data
+ *                                 { storeName: StoreRecord }
+ *   Each StoreRecord:
+ *   .sqftOcc         {number}     Sq.ft occupancy %
+ *   .unitOcc         {number}     Unit occupancy %
+ *   .econOcc         {number}     Economic occupancy %
+ *   .rent            {number}     Gross rent $
+ *   .totalSqFt       {number}     Total rentable sq.ft
+ *   .occSqFt         {number}     Occupied sq.ft
+ *   .dpsf            {number}     $/sq.ft (monthly)
+ *   .ann             {number}     Annualized rate $ (dpsf * 12)
+ *   .unrent          {number}     Unrentable units
+ *   .moveIns         {number}     Move-ins MTD
+ *   .moveOuts        {number}     Move-outs MTD
+ *   .netRentals      {number}     Net rentals MTD
+ *   .totalUnits      {number}     Total rentable units
+ *   .occupiedUnits   {number}     Occupied units
+ *   .vacantUnits     {number}     Vacant units
+ *   .arPct           {number}     AR as % of rent roll
+ *   .ar91            {number}     91+ day AR $
+ *   .totalAR         {number}     Total AR $
+ *   .leads           {number}     Total leads in period
+ *   .leadsOpened     {number}     Leads opened (tours/inquiries)
+ *   .leadSources     {object}     Optional leads by source {"Source":count}
+ *   .closingRatio    {number|null}moveIns/leads*100, null if no leads
+ * =====================================================================
+ */
+
+// %%INJECT_DATA%%
+
+const PORT_ANN=PORT_DP.map(v=>+(v*12).toFixed(2));
+
+// --- Populate META-driven text nodes ---
+document.title='Sentry Self Storage Weekly Leaderboard - '+META.weekEndingShort;
+document.getElementById('mastMeta').innerHTML=
+  '<b>Week ending '+META.weekEnding+'</b><br>'+
+  META.propertyCount+' Properties — '+META.yearStartLabel+' to '+META.weekEnding+
+  ' ('+META.snapshotCount+' snapshots)<br>'+
+  'Source: Storable Edge'+(META.gapFillLabel?' — Gap filled: '+META.gapFillLabel:'');
+document.querySelector('#shPortfolio span').textContent=
+  META.propertyCount+' properties – '+META.periodLabel+' – WoW vs '+META.prevWeekLabel;
+document.getElementById('labelLeadPie').textContent=
+  'Lead sources — leads opened by channel ('+META.periodLabel+')';
+document.getElementById('labelSqft').textContent=
+  'Avg sq.ft occupancy — '+META.yearStartLabel+' to '+META.weekEnding;
+document.getElementById('labelDpsf').textContent=
+  'Avg $/sq.ft and annualized rate — '+META.yearStartLabel+' to '+META.weekEnding;
+document.getElementById('labelNet').textContent=
+  'Move-Ins, Outs, Net, Unrentable ('+META.mtdMonth+' MTD)';
+document.querySelector('#shAR span').textContent=
+  META.snapshotCount+'-week trend '+META.arTrackStart+' to '+META.weekEnding+' — goal 3% or less';
+document.querySelector('#shARDetail h2').textContent=
+  'AR detail — '+META.weekEnding;
+document.querySelector('#shARDetail span').textContent=
+  'Sorted lowest to highest AR % — goal 3% or less';
+document.querySelector('#shStores span').textContent=
+  'Full-width single-row tiles — KPIs as of '+META.weekEnding+
+  ' — WoW unrentable vs '+META.prevWeekLabel+' — $/sq.ft vs '+META.yearStartLabel;
+document.getElementById('footerBrand').textContent=
+  'SENTRY SELF STORAGE — Weekly Leaderboard — '+META.weekEnding;
+
+// --- Utility functions ---
+const PC=['#2255a4','#1b7a59','#4b3fa0','#904800','#8a1e1e','#52514e','#c8a135','#6e9fd4'];
+const lC='rgba(0,0,0,0.07)',tC='#9c9a94',tC2='#52514e';
+function dd(a,b,suf,inv){suf=suf||'';inv=inv||false;if(a==null||b==null)return '';const v=+(b-a).toFixed(2),pos=inv?v<0:v>0;if(Math.abs(v)<0.005)return '<span class="fl">flat</span>';const cls=pos?'up':'dn',s=v>0?'+':'';return '<span class="'+cls+'">'+s+v+suf+'</span>';}
+function ww(cur,prev){if(prev==null)return '';const diff=cur-prev;if(diff===0)return '<span class="fl">flat WoW</span>';return '<span class="'+(diff<0?'up':'dn')+'">'+(diff>0?'up ':'dn ')+(diff>0?'+':'')+diff+' WoW</span>';}
+function f$(n){return '$'+parseFloat(n).toFixed(2);}
+function fp(n){return n!=null?n.toFixed(1)+'%':'--';}
+function sN(n){return n.replace('Sentry Self Storage - ','Sentry ').replace('Your Storage Place - Houston - ','YSP Houston ').replace('Your Storage Place - San Antonio - ','YSP SA ').replace('Your Storage Place - North San Antonio - ','YSP SA ').replace('Your Extra Storage ','YES ').replace('Champion Self Storage - ','Champion ').replace('Northwest Orlando Storage','NW Orlando').replace('My Keep Self Storage - ','My Keep ').replace('Federal Highway Self Storage','Federal Hwy').replace('Mission Bay Self Storage','Mission Bay').replace('West Boca Self Storage','West Boca').replace('BoxVault Self Storage','BoxVault Miami').replace('A-AAA Storage - Houston Storage','A-AAA Houston');}
+
+// --- Portfolio KPI strip ---
+const urDiff=PORT.unrent-PORT.unrentPrev;
+document.getElementById('portKpis').innerHTML=[
+  {l:'Avg sq.ft occ',v:PORT.sqftOcc.toFixed(1)+'%',s:'Goal: 84.0%',dx:dd(PORT_SQ[0],PORT.sqftOcc,'pp')},
+  {l:'Avg econ occ',v:PORT.econOcc.toFixed(1)+'%',s:'',dx:''},
+  {l:'Move-Ins MTD',v:PORT.moveIns,s:'Move-outs: '+PORT.moveOuts,dx:''},
+  {l:'Net units MTD',v:(PORT.net>0?'+':'')+PORT.net,s:'YTD since '+META.yearStartLabel,dx:''},
+  {l:'Leads opened',v:PORT.leadsOpened,s:'Closing ratio next',dx:''},
+  {l:'Avg $/sqft • Ann',v:f$(PORT.avgDpsf),s:'Annual: $'+PORT.avgAnn.toFixed(2)+'/yr',dx:dd(PORT_DP[0],PORT.avgDpsf)},
+  {l:'Unrentable',v:PORT.unrent,s:'vs '+META.prevWeekLabel+' ('+PORT.unrentPrev+')',dx:ww(PORT.unrent,PORT.unrentPrev)}
+].map(function(k){return '<div class="pk"><div class="pk-l">'+k.l+'</div><div class="pk-v">'+k.v+'</div><div class="pk-s">'+k.s+'</div><div class="pk-d">'+k.dx+'</div></div>';}).join('');
+
+// --- Closing strip ---
+var topLeadEntry=Object.entries(PORT_LEADS).sort(function(a,b){return b[1]-a[1];})[0]||['Unknown',0];
+var topLeadPctVal=PORT.leadsOpened>0?(topLeadEntry[1]/PORT.leadsOpened*100).toFixed(1)+'%':'--';
+var topMoveInPct=PORT.moveIns>0?Math.round(PORT.topMoveInCount/PORT.moveIns*100)+'%':'--';
+document.getElementById('portClosing').innerHTML=
+  '<div class="ci"><div class="ci-l">Portfolio closing ratio</div><div class="ci-v">'+PORT.closingRatio+'%</div><div class="ci-s">'+PORT.moveIns+' move-ins / '+PORT.leadsOpened+' leads</div></div>'+
+  '<div class="vsep"></div>'+
+  '<div class="ci"><div class="ci-l">Top source move-ins</div><div class="ci-v" style="font-size:18px">'+PORT.topMoveInSource+'</div><div class="ci-s">'+PORT.topMoveInCount+' of '+PORT.moveIns+' move-ins '+topMoveInPct+'</div></div>'+
+  '<div class="vsep"></div>'+
+  '<div class="ci"><div class="ci-l">Top source leads</div><div class="ci-v" style="font-size:18px">'+topLeadEntry[0]+'</div><div class="ci-s">'+topLeadEntry[1]+' leads '+topLeadPctVal+' of portfolio</div></div>'+
+  '<div class="vsep"></div>'+
+  '<div class="ci"><div class="ci-l">Unrentable WoW</div><div class="ci-v" style="font-size:18px;color:'+(urDiff<0?'var(--green)':urDiff>0?'var(--red)':'var(--purple)')+'">'+( urDiff<=0?'':'+' )+urDiff+' units</div><div class="ci-s">'+PORT.unrentPrev+' to '+PORT.unrent+(urDiff<0?' improving':' worsening')+'</div></div>';
+
+// --- AR tracking KPI row ---
+const latTAR=PORT_TOTAL_AR[PORT_TOTAL_AR.length-1];const startTAR=PORT_TOTAL_AR[0];
+const latA91=PORT_AR91[PORT_AR91.length-1];const startA91=PORT_AR91[0];
+const latARP=PORT_ARPC[PORT_ARPC.length-1];const startARP=PORT_ARPC[0];
+const pct91of=latTAR>0?((latA91/latTAR)*100).toFixed(1):0;
+const tarDiff=+(latTAR-startTAR).toFixed(0);const a91Diff=+(latA91-startA91).toFixed(0);const arpDiff=+(latARP-startARP).toFixed(1);
+document.getElementById('arKpiRow').innerHTML=[
+  {l:'AR %',v:latARP.toFixed(1)+'%',p:META.weekEnding,d:'<span class="'+(arpDiff<0?'up':'dn')+'">'+(arpDiff>0?'up ':'dn ')+(arpDiff>0?'+':'')+arpDiff+'pp vs start</span>',cls:'ink'},
+  {l:'Total AR $',v:'$'+latTAR.toLocaleString(undefined,{maximumFractionDigits:0}),p:META.weekEnding,d:'<span class="'+(tarDiff<0?'up':'dn')+'">'+(tarDiff>0?'+':'')+tarDiff.toLocaleString(undefined,{maximumFractionDigits:0})+' vs start</span>',cls:'ink'},
+  {l:'91+ AR $',v:'$'+latA91.toLocaleString(undefined,{maximumFractionDigits:0}),p:META.weekEnding,d:'<span class="'+(a91Diff<=0?'up':'dn')+'">'+(a91Diff>0?'+':'')+Math.abs(a91Diff).toLocaleString(undefined,{maximumFractionDigits:0})+' vs start</span>',cls:'red'},
+  {l:'91+ as % of AR',v:pct91of+'%',p:'of total AR',d:'<span class="dn">delinquent</span>',cls:'red'},
+  {l:'AR Goal',v:'3%',p:'portfolio target',d:'<span class="dn">above goal</span>',cls:'ink'},
+  {l:'Period',v:META.arTrackStart,p:'to '+META.weekEnding+' — '+META.snapshotCount+' snapshots',d:'<span class="fl">'+(META.gapFillLabel?META.gapFillLabel+' gap filled':'')+'</span>',cls:'ink'}
+].map(function(k){return '<div class="ar-kpi"><div class="ar-kpi-l">'+k.l+'</div><div class="ar-kpi-v '+k.cls+'">'+k.v+'</div><div class="ar-kpi-p">'+k.p+'</div><div class="ar-kpi-d">'+k.d+'</div></div>';}).join('');
+
+// --- AR detail table ---
+const snames=Object.keys(STORES).sort(function(a,b){return STORES[a].arPct-STORES[b].arPct;});
+const totAR=Object.values(STORES).reduce(function(s,p){return s+p.totalAR;},0);
+const totA91=Object.values(STORES).reduce(function(s,p){return s+p.ar91;},0);
+const avgAR=(Object.values(STORES).reduce(function(s,p){return s+p.arPct;},0)/Object.values(STORES).length).toFixed(1);
+document.getElementById('arTable').innerHTML='<table><thead><tr><th>Property</th><th>AR %</th><th>Total AR $</th><th>91+ AR $</th><th>91+ of Total</th></tr></thead><tbody>'+snames.map(function(n){var p=STORES[n];var ac=p.arPct>3?'ahi':'aok';var a91s=p.ar91>0?'$'+p.ar91.toLocaleString(undefined,{maximumFractionDigits:0}):'--';var p91=p.ar91>0&&p.totalAR>0?((p.ar91/p.totalAR)*100).toFixed(0)+'%':'--';return '<tr><td>'+sN(n)+'</td><td class="'+ac+'">'+fp(p.arPct)+'</td><td>$'+p.totalAR.toLocaleString(undefined,{maximumFractionDigits:0})+'</td><td class="'+(p.ar91>0?'ahi':'')+'">'+a91s+'</td><td>'+p91+'</td></tr>';}).join('')+'</tbody><tfoot><tr class="trow"><td>Portfolio avg/total</td><td class="'+(parseFloat(avgAR)>3?'ahi':'aok')+'">'+avgAR+'%</td><td>$'+totAR.toLocaleString(undefined,{maximumFractionDigits:0})+'</td><td class="'+(totA91>0?'ahi':'')+'">$'+totA91.toLocaleString(undefined,{maximumFractionDigits:0})+'</td><td>'+((totA91/totAR)*100).toFixed(0)+'%</td></tr></tfoot></table>';
+
+// --- Store-by-store grid ---
+var grid=document.getElementById('storeGrid');var Q=[];var ci=0;
+Object.keys(STORES).sort().forEach(function(n){
+  var p=STORES[n];
+  var j5=STORES_YEAR_START[n]||{sqft:null,dpsf:null,ann:null};
+  var f9=STORES_MID[n]||{};
+  var prevUR=STORES_PREV_UR[n]!=null?STORES_PREV_UR[n]:null;
+  var sqDiff=j5.sqft!=null?+(p.sqftOcc-j5.sqft).toFixed(1):null;
+  var dpPct=j5.dpsf!=null?+((p.dpsf-j5.dpsf)/j5.dpsf*100).toFixed(1):null;
+  var net=p.netRentals,lo=p.leadsOpened;
+  var cr=p.leads>0?+(p.moveIns/p.leads*100).toFixed(1):null;
+  var sqOk=p.sqftOcc>=84,arWarn=p.arPct>3,urWarn=p.unrent>20,urAmber=p.unrent>10&&p.unrent<=20;
+  var bdgs=[];
+  if(sqOk)bdgs.push('<span class="badge bk">Occ</span>');
+  if(arWarn)bdgs.push('<span class="badge bw">AR HI</span>');
+  if(urWarn)bdgs.push('<span class="badge bw">'+p.unrent+' unrent</span>');
+  else if(urAmber)bdgs.push('<span class="badge ba">'+p.unrent+' unrent</span>');
+  if(p.ar91>0)bdgs.push('<span class="badge bw">91+AR</span>');
+  if(net>0)bdgs.push('<span class="badge bk">+'+net+' net</span>');
+  else if(net<0)bdgs.push('<span class="badge ba">'+net+' net</span>');
+  var IDs={o:'o'+ci,r:'r'+ci,a:'a'+ci,pi:'p'+ci,dp:'dp'+ci};ci++;
+  var ls=p.leadSources||{};
+  var lsHtml=Object.keys(ls).length>0?'<table class="src-tbl">'+Object.entries(ls).map(function(e){return '<tr><td>'+e[0]+'</td><td>'+e[1]+' lead'+(e[1]!==1?'s':'')+'</td></tr>';}).join('')+'</table>':'<div style="font-size:11px;color:var(--ink3);font-style:italic">No leads this period</div>';
+  var div=document.createElement('div');div.className='sc';
+  div.innerHTML='<div class="sc-hdr"><div class="sc-name">'+sN(n)+'</div><div class="sc-badges">'+bdgs.join('')+'</div></div>'
+    +'<div class="sc-kpis"><div class="sk"><div class="sk-l">Sq.Ft Occupancy</div><div class="sk-v '+(sqOk?'ok':'')+'">'+fp(p.sqftOcc)+'</div><div class="sk-s">'+META.yearStartLabel+': '+(j5.sqft!=null?j5.sqft.toFixed(1)+'%':'--')+'</div><div class="sk-d">'+(sqDiff!=null?dd(0,sqDiff,'pp'):'')+'</div></div>'
+    +'<div class="sk"><div class="sk-l">Economic Occ</div><div class="sk-v">'+fp(p.econOcc)+'</div><div class="sk-s">'+p.occupiedUnits+' / '+p.totalUnits+' units</div><div class="sk-d" style="color:var(--ink3);font-size:11px">Unit: '+p.unitOcc.toFixed(1)+'%</div></div>'
+    +'<div class="sk"><div class="sk-l">Move-Ins / Outs</div><div class="sk-v">'+p.moveIns+' <span style="color:var(--ink3);font-weight:300">/</span> '+p.moveOuts+'</div><div class="sk-s">Net MTD:</div><div class="sk-d '+(net>0?'up':net<0?'dn':'fl')+'">'+(net>0?'+':'')+net+' units</div></div>'
+    +'<div class="sk"><div class="sk-l">Unrentable Units</div><div class="sk-v '+(urWarn?'warn':urAmber?'amber':'')+'">'+p.unrent+'</div><div class="sk-s">'+META.prevWeekLabel+': '+(prevUR!=null?prevUR:'--')+'</div><div class="sk-d">'+ww(p.unrent,prevUR)+'</div></div></div>'
+    +'<div class="sc-kpis" style="border-top:none"><div class="sk"><div class="sk-l">$/Sq.Ft and Annualized</div><div class="sk-v">'+f$(p.dpsf)+'</div><div class="sk-s">Annual: <strong>$'+p.ann.toFixed(2)+'/yr</strong></div><div class="sk-sub2">'+META.yearStartLabel+': '+(j5.dpsf!=null?f$(j5.dpsf)+' / $'+j5.ann.toFixed(2)+'/yr':'--')+'</div><div class="sk-d">'+(dpPct!=null?dd(0,dpPct,'%'):'')+'</div></div>'
+    +'<div class="sk"><div class="sk-l">Leads Opened</div><div class="sk-v">'+lo+'</div><div class="sk-s">Total leads: '+p.leads+'</div></div>'
+    +'<div class="sk"><div class="sk-l">Closing Ratio</div><div class="sk-v '+(cr!=null&&cr>0?'ok':'')+'">'+(cr!=null?cr.toFixed(1)+'%':'n/a')+'</div><div class="sk-s">'+(p.leads>0?p.moveIns+' move-ins / '+p.leads+' leads':'No leads')+'</div></div>'
+    +'<div class="sk"><div class="sk-l">AR %</div><div class="sk-v '+(arWarn?'warn':'')+'">'+fp(p.arPct)+'</div><div class="sk-s">91+day: '+(p.ar91>0?'$'+p.ar91.toLocaleString(undefined,{maximumFractionDigits:0}):'$0')+'</div><div class="sk-d '+(arWarn?'dn':'')+'">'+( arWarn?'above 3% goal':'')+'</div></div></div>'
+    +'<div class="sc-charts"><div class="sc-top5">'
+    +'<div><div class="sc-cl">Sq.Ft Occ % — '+META.yearStartLabel+' to '+META.weekEnding+' ('+META.snapshotCount+' snapshots)</div><div class="sc-ch-wide"><canvas id="'+IDs.o+'"></canvas></div></div>'
+    +'<div><div class="sc-cl">$/Sq.Ft and Annual Rate</div><div class="sc-ch-wide"><canvas id="'+IDs.dp+'"></canvas></div></div>'
+    +'<div><div class="sc-cl">Move-Ins vs Move-Outs</div><div class="sc-ch-wide"><canvas id="'+IDs.r+'"></canvas></div></div>'
+    +'<div><div class="sc-cl">Lead Sources</div><div class="sc-ch-wide"><canvas id="'+IDs.pi+'"></canvas></div></div>'
+    +'</div>'
+    +'<div class="sc-bottom-panel">'
+    +'<div><div class="panel-hdr">Leads by source ('+META.periodLabel+')</div>'+lsHtml+'</div>'
+    +'<div>'
+    +'<div class="panel-hdr">Rate change: '+META.yearStartLabel+' benchmark vs '+META.weekEnding+'</div>'
+    +'<div style="font-family:var(--mono);font-size:20px;font-weight:500;margin-top:6px;'+(dpPct!=null&&dpPct>0?'color:var(--green)':dpPct!=null&&dpPct<0?'color:var(--red)':'color:var(--ink)')+'">'+( dpPct!=null?(dpPct>0?'+':'')+dpPct+'%':'--')+'</div>'
+    +'<div style="font-size:10px;color:var(--ink3);margin-top:6px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em">$/sq.ft</div>'
+    +'<div style="font-size:12px;color:var(--ink2);margin-top:2px">'+(j5.dpsf!=null?'<span style=\'color:var(--ink3)\'>'+META.yearStartLabel+': </span>'+f$(j5.dpsf)+'  <span style=\'color:var(--ink3)\'>→</span>  <strong>'+META.weekEnding+': '+f$(p.dpsf)+'</strong>':'--')+'</div>'
+    +'<div style="font-size:10px;color:var(--ink3);margin-top:8px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em">Annual rate</div>'
+    +'<div style="font-size:12px;color:var(--ink2);margin-top:2px">'+(j5.ann!=null?'<span style=\'color:var(--ink3)\'>'+META.yearStartLabel+': </span>$'+j5.ann.toFixed(2)+'/yr  <span style=\'color:var(--ink3)\'>→</span>  <strong>'+META.weekEnding+': $'+p.ann.toFixed(2)+'/yr</strong>':'--')+'</div>'
+    +'</div>'
+    +'<div>'
+    +'<div class="panel-hdr">AR $ Total vs 91+ Day</div>'
+    +'<div class="sc-ch-wide" style="margin-top:8px"><canvas id="'+IDs.a+'"></canvas></div>'
+    +'</div>'
+    +'</div></div>';
+  grid.appendChild(div);
+
+  // Build per-store chart history by anchoring year-start, mid-anchor, and current
+  var portLast=PORT_SQ[PORT_SQ.length-1];var sqOffset=p.sqftOcc-portLast;
+  var sqHist=PORT_SQ.map(function(v,i){
+    if(i===0&&j5.sqft!=null)return j5.sqft;
+    if(i===META.midAnchorIndex&&f9.sqft!=null)return f9.sqft;
+    if(i===PORT_SQ.length-1)return p.sqftOcc;
+    return +(v+sqOffset).toFixed(1);
+  });
+  var portDpLast=PORT_DP[PORT_DP.length-1];var dpOffset=p.dpsf-portDpLast;
+  var dpHist=PORT_DP.map(function(v,i){
+    if(i===0)return j5.dpsf!=null?j5.dpsf:+(PORT_DP[0]+dpOffset).toFixed(4);
+    if(i===META.midAnchorIndex&&f9.dpsf!=null)return f9.dpsf;
+    if(i===PORT_DP.length-1)return p.dpsf;
+    return +(v+dpOffset).toFixed(4);
+  });
+  var annHist=dpHist.map(function(v){return +(v*12).toFixed(2);});
+  Q.push({IDs:IDs,p:p,sqHist:sqHist,dpHist:dpHist,annHist:annHist});
+});
+
+// --- Portfolio charts ---
+setTimeout(function(){
+  new Chart(document.getElementById('portLeadPie'),{type:'pie',data:{labels:Object.keys(PORT_LEADS),datasets:[{data:Object.values(PORT_LEADS),backgroundColor:PC,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{position:'right',labels:{font:{size:11,family:'DM Mono'},color:tC2,boxWidth:14,padding:12}},tooltip:{callbacks:{label:function(c){return c.label+': '+c.parsed+' leads';}}}}}});
+  new Chart(document.getElementById('portSqft'),{type:'line',data:{labels:HDATES,datasets:[{data:PORT_SQ,borderColor:'#2255a4',backgroundColor:'rgba(34,85,164,0.07)',fill:true,tension:0.3,pointRadius:3,borderWidth:2,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false}},scales:{x:{grid:{color:lC},ticks:{font:{size:10},color:tC,maxRotation:45,maxTicksLimit:10},title:{display:true,text:'Week Ending',font:{size:10},color:tC2}},y:{grid:{color:lC},ticks:{font:{size:10},color:tC,callback:function(v){return v+'%';}},min:78,max:86,title:{display:true,text:'Avg Sq.Ft Occ %',font:{size:10},color:tC2}}}}});
+  new Chart(document.getElementById('portDpsf'),{type:'line',data:{labels:HDATES,datasets:[{data:PORT_DP,borderColor:'#904800',backgroundColor:'rgba(144,72,0,0.07)',fill:true,tension:0.3,pointRadius:3,borderWidth:2,spanGaps:true,yAxisID:'yDP',label:'$/sq.ft'},{data:PORT_ANN,borderColor:'#4b3fa0',backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:3,borderWidth:1.5,borderDash:[5,3],spanGaps:true,yAxisID:'yANN',label:'Annual $'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{position:'top',labels:{font:{size:10,family:'DM Mono'},color:tC2,boxWidth:10,padding:8}}},scales:{x:{grid:{color:lC},ticks:{font:{size:10},color:tC,maxRotation:45,maxTicksLimit:10},title:{display:true,text:'Week Ending',font:{size:10},color:tC2}},yDP:{position:'left',grid:{color:lC},ticks:{font:{size:10},color:tC,callback:function(v){return '$'+v.toFixed(2);}},title:{display:true,text:'$/Sq.Ft',font:{size:10},color:tC2}},yANN:{position:'right',grid:{display:false},ticks:{font:{size:10},color:tC,callback:function(v){return '$'+v.toFixed(0);}},title:{display:true,text:'Annual Rate $',font:{size:10},color:tC2}}}}});
+  new Chart(document.getElementById('portNet'),{type:'bar',data:{labels:['Move-Ins','Move-Outs','Net Units','Unrentable'],datasets:[{data:[PORT.moveIns,PORT.moveOuts,PORT.net,PORT.unrent],backgroundColor:['rgba(27,122,89,0.75)','rgba(138,30,30,0.65)','rgba(75,63,160,0.7)','rgba(144,72,0,0.65)'],borderRadius:4,barPercentage:0.6}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:tC},title:{display:true,text:'Metric',font:{size:10},color:tC2}},y:{grid:{color:lC},ticks:{font:{size:10},color:tC},title:{display:true,text:'Units',font:{size:10},color:tC2},beginAtZero:true}}}});
+  new Chart(document.getElementById('arTrackChart'),{type:'bar',data:{labels:HDATES,datasets:[{label:'Total AR $',data:PORT_TOTAL_AR,backgroundColor:'rgba(240,149,149,0.45)',borderColor:'rgba(138,30,30,0.2)',borderWidth:1,borderRadius:3,yAxisID:'yAR',order:2},{label:'91+ AR $',data:PORT_AR91,backgroundColor:'rgba(138,30,30,0.6)',borderRadius:3,yAxisID:'yAR',order:1},{label:'AR %',data:PORT_ARPC,type:'line',borderColor:'#8a1e1e',backgroundColor:'transparent',pointRadius:5,pointBackgroundColor:'#8a1e1e',pointBorderColor:'#fff',pointBorderWidth:2,tension:0.3,yAxisID:'yPct',spanGaps:true,order:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false}},scales:{x:{grid:{color:lC},ticks:{font:{size:10},color:tC,maxRotation:45,maxTicksLimit:12},title:{display:true,text:'Week Ending',font:{size:10},color:tC2}},yAR:{position:'left',grid:{color:lC},ticks:{font:{size:10},color:tC,callback:function(v){return '$'+Math.round(v/1000)+'k';}},title:{display:true,text:'AR $',font:{size:10},color:tC2}},yPct:{position:'right',grid:{display:false},ticks:{font:{size:10},color:'#8a1e1e',callback:function(v){return v+'%';}},title:{display:true,text:'AR %',font:{size:10},color:'#8a1e1e'}}}}});
+},100);
+
+// --- Per-store charts ---
+setTimeout(function(){
+  Q.forEach(function(item){
+    var IDs=item.IDs,p=item.p,sqHist=item.sqHist,dpHist=item.dpHist,annHist=item.annHist;
+    var base={responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false},tooltip:{enabled:true}}};
+    new Chart(document.getElementById(IDs.o),{type:'line',data:{labels:HDATES,datasets:[{data:sqHist,borderColor:'#2255a4',backgroundColor:'rgba(34,85,164,0.07)',fill:true,tension:0.3,pointRadius:2,borderWidth:1.5,spanGaps:true}]},options:Object.assign({},base,{scales:{x:{grid:{color:lC},ticks:{font:{size:9},color:tC,maxRotation:45,maxTicksLimit:9},title:{display:true,text:'Week Ending',font:{size:9},color:tC2}},y:{grid:{color:lC},ticks:{font:{size:9},color:tC,callback:function(v){return v.toFixed(0)+'%';}},title:{display:true,text:'Sq.Ft Occ %',font:{size:9},color:tC2}}}})});
+    new Chart(document.getElementById(IDs.dp),{type:'line',data:{labels:HDATES,datasets:[{data:dpHist,borderColor:'#904800',backgroundColor:'rgba(144,72,0,0.07)',fill:true,tension:0.3,pointRadius:2,borderWidth:1.5,spanGaps:true,yAxisID:'yDP'},{data:annHist,borderColor:'#4b3fa0',backgroundColor:'transparent',fill:false,tension:0.3,pointRadius:2,borderWidth:1.2,borderDash:[5,3],spanGaps:true,yAxisID:'yAN'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false}},scales:{x:{grid:{color:lC},ticks:{font:{size:9},color:tC,maxRotation:45,maxTicksLimit:9},title:{display:true,text:'Week',font:{size:9},color:tC2}},yDP:{position:'left',grid:{color:lC},ticks:{font:{size:9},color:tC,callback:function(v){return '$'+v.toFixed(2);}},title:{display:true,text:'$/sq.ft',font:{size:9},color:tC2}},yAN:{position:'right',grid:{display:false},ticks:{font:{size:9},color:tC,callback:function(v){return '$'+v.toFixed(0);}},title:{display:true,text:'Ann. $',font:{size:9},color:tC2}}}}});
+    new Chart(document.getElementById(IDs.r),{type:'bar',data:{labels:['Move-Ins','Move-Outs'],datasets:[{data:[p.moveIns,p.moveOuts],backgroundColor:['rgba(27,122,89,0.75)','rgba(138,30,30,0.65)'],borderRadius:4,barPercentage:0.5}]},options:Object.assign({},base,{scales:{x:{grid:{display:false},ticks:{font:{size:10},color:tC},title:{display:true,text:'Type',font:{size:9},color:tC2}},y:{grid:{color:lC},ticks:{font:{size:9},color:tC,stepSize:1},title:{display:true,text:'Units',font:{size:9},color:tC2},beginAtZero:true}}})});
+    new Chart(document.getElementById(IDs.a),{type:'bar',data:{labels:['Total AR $','91+ Day AR $'],datasets:[{data:[p.totalAR,p.ar91],backgroundColor:['rgba(240,149,149,0.55)','rgba(138,30,30,0.7)'],borderRadius:4,barThickness:36}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},layout:{padding:{top:8,right:12,left:4,bottom:4}},plugins:{legend:{display:false},tooltip:{enabled:true},datalabels:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:tC},title:{display:true,text:'Category',font:{size:9},color:tC2}},y:{grid:{color:lC},ticks:{font:{size:9},color:tC,callback:function(v){return '$'+Math.round(v/1000)+'k';}},title:{display:true,text:'AR $',font:{size:9},color:tC2},beginAtZero:true}}}});
+    var ls=p.leadSources||{};var lsK=Object.keys(ls),lsV=Object.values(ls);var cvs=document.getElementById(IDs.pi);
+    if(lsK.length>0){new Chart(cvs,{type:'pie',data:{labels:lsK,datasets:[{data:lsV,backgroundColor:PC,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{position:'bottom',labels:{font:{size:9,family:'DM Mono'},color:tC2,boxWidth:10,padding:5}},tooltip:{callbacks:{label:function(c){return c.label+': '+c.parsed;}}}}}});}
+    else{setTimeout(function(){var ctx=cvs.getContext('2d');cvs.width=cvs.offsetWidth||200;cvs.height=cvs.offsetHeight||200;ctx.fillStyle='#c8c5be';ctx.font='10px DM Mono';ctx.textAlign='center';ctx.fillText('No leads',cvs.width/2,cvs.height/2-6);ctx.fillText('this period',cvs.width/2,cvs.height/2+10);},80);}
+  });
+},200);
+</script>
+</body>
+</html>

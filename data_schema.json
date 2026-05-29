@@ -1,0 +1,388 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "sentry-weekly-dashboard-data",
+  "title": "Sentry Self Storage Weekly Dashboard — Data Payload",
+  "description": "Full data payload injected by the n8n workflow each Monday. Claude API parses the Storable Edge PDFs and returns this structure. The workflow performs a string-replace of '// %%INJECT_DATA%%' in template.html with const declarations for every top-level property.",
+  "type": "object",
+  "required": [
+    "META",
+    "HDATES",
+    "PORT_SQ",
+    "PORT_DP",
+    "PORT_TOTAL_AR",
+    "PORT_AR91",
+    "PORT_ARPC",
+    "PORT",
+    "PORT_LEADS",
+    "STORES_YEAR_START",
+    "STORES_MID",
+    "STORES_PREV_UR",
+    "STORES"
+  ],
+  "additionalProperties": false,
+  "properties": {
+
+    "META": {
+      "type": "object",
+      "description": "Report metadata — dates, period labels, and snapshot counts used to populate all dynamic text in the dashboard.",
+      "required": [
+        "weekEnding",
+        "weekEndingShort",
+        "periodLabel",
+        "mtdMonth",
+        "prevWeekLabel",
+        "snapshotCount",
+        "propertyCount",
+        "yearStartLabel",
+        "gapFillLabel",
+        "arTrackStart",
+        "midAnchorIndex"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "weekEnding": {
+          "type": "string",
+          "description": "Full date of the current snapshot used throughout headings. Example: 'May 3, 2026'"
+        },
+        "weekEndingShort": {
+          "type": "string",
+          "description": "Same date without comma, used in the page <title>. Example: 'May 3 2026'"
+        },
+        "periodLabel": {
+          "type": "string",
+          "description": "The MTD date range for the current week. Example: 'May 1-3, 2026'"
+        },
+        "mtdMonth": {
+          "type": "string",
+          "description": "Month abbreviation used in the 'Move-Ins MTD' chart label. Example: 'May'"
+        },
+        "prevWeekLabel": {
+          "type": "string",
+          "description": "Short label for the prior snapshot date used in WoW comparisons. Example: 'Apr 27'"
+        },
+        "snapshotCount": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number of snapshots in HDATES (and all PORT_* arrays). Example: 17"
+        },
+        "propertyCount": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of properties in the portfolio. Example: 26"
+        },
+        "yearStartLabel": {
+          "type": "string",
+          "description": "Short label for the first snapshot of the year, used as baseline. Example: 'Jan 5'"
+        },
+        "gapFillLabel": {
+          "type": ["string", "null"],
+          "description": "Label for the gap-fill anchor snapshot, shown in the AR KPI row. Null if no gap fill was needed. Example: 'Feb 9, 2026'"
+        },
+        "arTrackStart": {
+          "type": "string",
+          "description": "First date shown in the AR trend section header. Example: 'Jan 12'"
+        },
+        "midAnchorIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Zero-based index into HDATES for the STORES_MID anchor snapshot. Per-store chart history is pinned to this index. Example: 4 (for Feb 9 when HDATES[4] == '2/9')"
+        }
+      }
+    },
+
+    "HDATES": {
+      "type": "array",
+      "description": "Ordered list of snapshot date labels. Must be the same length as PORT_SQ, PORT_DP, PORT_TOTAL_AR, PORT_AR91, and PORT_ARPC. Example: [\"1/12\",\"1/19\",\"1/26\",...]",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+
+    "PORT_SQ": {
+      "type": "array",
+      "description": "Portfolio average sq.ft occupancy % for each snapshot in HDATES order.",
+      "items": { "type": "number", "minimum": 0, "maximum": 100 },
+      "minItems": 1
+    },
+
+    "PORT_DP": {
+      "type": "array",
+      "description": "Portfolio average $/sq.ft (monthly) for each snapshot in HDATES order. PORT_ANN is derived from this array in the template (value * 12).",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 1
+    },
+
+    "PORT_TOTAL_AR": {
+      "type": "array",
+      "description": "Portfolio total AR $ for each snapshot in HDATES order.",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 1
+    },
+
+    "PORT_AR91": {
+      "type": "array",
+      "description": "Portfolio 91+ day AR $ for each snapshot in HDATES order.",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 1
+    },
+
+    "PORT_ARPC": {
+      "type": "array",
+      "description": "Portfolio AR as % of rent roll for each snapshot in HDATES order.",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 1
+    },
+
+    "PORT": {
+      "type": "object",
+      "description": "Portfolio aggregate KPIs for the current week.",
+      "required": [
+        "sqftOcc",
+        "econOcc",
+        "moveIns",
+        "moveOuts",
+        "net",
+        "leadsOpened",
+        "closingRatio",
+        "unrent",
+        "unrentPrev",
+        "avgDpsf",
+        "avgAnn",
+        "topMoveInSource",
+        "topMoveInCount"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sqftOcc": {
+          "type": "number",
+          "description": "Portfolio average sq.ft occupancy % as of the current snapshot."
+        },
+        "econOcc": {
+          "type": "number",
+          "description": "Portfolio average economic occupancy % as of the current snapshot."
+        },
+        "moveIns": {
+          "type": "integer",
+          "description": "Total move-ins across all stores, MTD."
+        },
+        "moveOuts": {
+          "type": "integer",
+          "description": "Total move-outs across all stores, MTD."
+        },
+        "net": {
+          "type": "integer",
+          "description": "Net rentals (moveIns minus moveOuts), MTD. May be negative."
+        },
+        "leadsOpened": {
+          "type": "integer",
+          "description": "Total leads opened across all stores in the current period."
+        },
+        "closingRatio": {
+          "type": "number",
+          "description": "Portfolio closing ratio % (moveIns / leadsOpened * 100)."
+        },
+        "unrent": {
+          "type": "integer",
+          "description": "Current total unrentable units across all stores."
+        },
+        "unrentPrev": {
+          "type": "integer",
+          "description": "Prior week's total unrentable units (WoW comparison)."
+        },
+        "avgDpsf": {
+          "type": "number",
+          "description": "Portfolio average $/sq.ft (monthly) as of the current snapshot."
+        },
+        "avgAnn": {
+          "type": "number",
+          "description": "Portfolio average annualized rate $ (avgDpsf * 12)."
+        },
+        "topMoveInSource": {
+          "type": "string",
+          "description": "The lead source that generated the most move-ins this period. Example: 'Walk-In'"
+        },
+        "topMoveInCount": {
+          "type": "integer",
+          "description": "Number of move-ins attributed to topMoveInSource."
+        }
+      }
+    },
+
+    "PORT_LEADS": {
+      "type": "object",
+      "description": "Leads opened by source across the entire portfolio for the current period. Keys are source names; values are lead counts. Example: {\"Call Center (XPS)\": 15, \"Walk-In\": 12}",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+
+    "STORES_YEAR_START": {
+      "type": "object",
+      "description": "Per-store sq.ft occupancy, $/sq.ft, and annualized rate at the year-start snapshot (META.yearStartLabel). Used as the baseline for delta calculations and as the first anchor point in per-store trend charts. Keys are canonical store names matching STORES.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sqft", "dpsf", "ann"],
+        "additionalProperties": false,
+        "properties": {
+          "sqft": { "type": "number", "description": "Sq.ft occupancy % at year start." },
+          "dpsf": { "type": "number", "description": "$/sq.ft (monthly) at year start." },
+          "ann":  { "type": "number", "description": "Annualized rate $ at year start (dpsf * 12)." }
+        }
+      }
+    },
+
+    "STORES_MID": {
+      "type": "object",
+      "description": "Per-store sq.ft occupancy, $/sq.ft, and annualized rate at the mid-year anchor snapshot (HDATES[META.midAnchorIndex]). Used as the second anchor point in per-store trend charts; typically the gap-fill date. Keys must match STORES.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["sqft", "dpsf", "ann"],
+        "additionalProperties": false,
+        "properties": {
+          "sqft": { "type": "number", "description": "Sq.ft occupancy % at mid anchor." },
+          "dpsf": { "type": "number", "description": "$/sq.ft (monthly) at mid anchor." },
+          "ann":  { "type": "number", "description": "Annualized rate $ at mid anchor." }
+        }
+      }
+    },
+
+    "STORES_PREV_UR": {
+      "type": "object",
+      "description": "Per-store unrentable unit count as of the prior snapshot (META.prevWeekLabel). Used for WoW unrentable comparisons in store tiles. Keys must match STORES.",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+
+    "STORES": {
+      "type": "object",
+      "description": "Current-week store data keyed by canonical store name. Each value is a StoreRecord with all KPIs for the current snapshot period.",
+      "additionalProperties": {
+        "type": "object",
+        "description": "StoreRecord — all KPIs for one store as of the current week.",
+        "required": [
+          "sqftOcc",
+          "unitOcc",
+          "econOcc",
+          "rent",
+          "totalSqFt",
+          "occSqFt",
+          "dpsf",
+          "ann",
+          "unrent",
+          "moveIns",
+          "moveOuts",
+          "netRentals",
+          "totalUnits",
+          "occupiedUnits",
+          "vacantUnits",
+          "arPct",
+          "ar91",
+          "totalAR",
+          "leads",
+          "leadsOpened",
+          "closingRatio"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "sqftOcc": {
+            "type": "number",
+            "description": "Sq.ft occupancy % — occupied sq.ft / total rentable sq.ft * 100."
+          },
+          "unitOcc": {
+            "type": "number",
+            "description": "Unit occupancy % — occupied units / total units * 100."
+          },
+          "econOcc": {
+            "type": "number",
+            "description": "Economic occupancy % — actual rent / asking rent * 100. May exceed 100 if above-rate units are occupied."
+          },
+          "rent": {
+            "type": "number",
+            "description": "Gross rent collected $ (MTD or as of snapshot)."
+          },
+          "totalSqFt": {
+            "type": "number",
+            "description": "Total rentable sq.ft for this property."
+          },
+          "occSqFt": {
+            "type": "number",
+            "description": "Occupied sq.ft as of the snapshot."
+          },
+          "dpsf": {
+            "type": "number",
+            "description": "Average revenue per occupied sq.ft per month ($)."
+          },
+          "ann": {
+            "type": "number",
+            "description": "Annualized rate $ (dpsf * 12)."
+          },
+          "unrent": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of unrentable units as of the snapshot."
+          },
+          "moveIns": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Move-ins MTD."
+          },
+          "moveOuts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Move-outs MTD."
+          },
+          "netRentals": {
+            "type": "integer",
+            "description": "Net rentals MTD (moveIns minus moveOuts). May be negative."
+          },
+          "totalUnits": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Total rentable unit count."
+          },
+          "occupiedUnits": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Occupied unit count as of snapshot."
+          },
+          "vacantUnits": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Vacant (available and rentable) unit count."
+          },
+          "arPct": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Accounts receivable as % of rent roll. Goal is 3% or less."
+          },
+          "ar91": {
+            "type": "number",
+            "minimum": 0,
+            "description": "91+ day delinquent AR $ (subset of totalAR)."
+          },
+          "totalAR": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total accounts receivable $ outstanding."
+          },
+          "leads": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total leads received in the current period (all channels)."
+          },
+          "leadsOpened": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Leads that were opened / converted to a tour or inquiry."
+          },
+          "leadSources": {
+            "type": "object",
+            "description": "Optional breakdown of leads opened by source channel. Omit or set to {} if no leads. Example: {\"Walk-In\": 2, \"Call Center (XPS)\": 1}",
+            "additionalProperties": { "type": "integer", "minimum": 1 }
+          },
+          "closingRatio": {
+            "type": ["number", "null"],
+            "description": "Closing ratio % (moveIns / leads * 100). Null when leads = 0."
+          }
+        }
+      }
+    }
+
+  }
+}
